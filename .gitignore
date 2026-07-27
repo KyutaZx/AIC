@@ -1,3 +1,33 @@
-__pycache__/
-*.pyc
+# Model weights (backed up on Google Drive, not version controlled)
 ai-engine/best_visual.pt
+*.pt
+*.pth
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# Node / frontend
+node_modules/
+.next/
+out/
+dist/
+build/
+
+# Go
+backend/backend
+*.exe
+
+# Environment & secrets
+.env
+.env.*
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
