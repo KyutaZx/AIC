@@ -1,0 +1,3 @@
+__pycache__/
+*.pyc
+ai-engine/best_visual.pt
