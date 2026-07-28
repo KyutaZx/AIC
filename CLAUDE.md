@@ -104,9 +104,9 @@ Sumber: dokumen resmi panitia. Pelanggaran bisa berakibat diskualifikasi.
 ```
 ✅ Model best_visual.pt — sudah ada, backup di Google Drive
 ✅ AI Engine (FastAPI) — sudah jalan, model ter-load, endpoint /ai/inference berfungsi
-⬜ Backend (Golang Gin) — belum
+✅ Backend (Golang Gin) — AI Engine + Backend tested end-to-end via docker compose up
 ⬜ Frontend (React/Next.js) — belum
-⬜ Docker Compose — belum
+✅ Docker Compose — AI Engine + Backend tested end-to-end via docker compose up
 ```
 
 ## Cara Kerja dengan Claude Code
