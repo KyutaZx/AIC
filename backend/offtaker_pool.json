@@ -1,0 +1,64 @@
+{
+  "offtakers": [
+    {
+      "id": "off_001",
+      "nama": "CV Maju Bahari",
+      "lokasi": "Surabaya, Jawa Timur",
+      "jarak_km": 45,
+      "kontak": "081234567890",
+      "tier_accepted": ["Tier2_Sedang", "Tier3_Prima"],
+      "kapasitas_kg": 500,
+      "keterangan": "Ekspor ke Singapura dan Malaysia"
+    },
+    {
+      "id": "off_002",
+      "nama": "UD Segar Laut",
+      "lokasi": "Sidoarjo, Jawa Timur",
+      "jarak_km": 23,
+      "kontak": "082345678901",
+      "tier_accepted": ["Tier1_Kritis", "Tier2_Sedang", "Tier3_Prima"],
+      "kapasitas_kg": 200,
+      "keterangan": "Pasar tradisional lokal, beli semua kondisi"
+    },
+    {
+      "id": "off_003",
+      "nama": "PT Nusantara Fish Hub",
+      "lokasi": "Gresik, Jawa Timur",
+      "jarak_km": 67,
+      "kontak": "083456789012",
+      "tier_accepted": ["Tier3_Prima"],
+      "kapasitas_kg": 1000,
+      "keterangan": "Hub distribusi lintas provinsi dan ekspor"
+    },
+    {
+      "id": "off_004",
+      "nama": "Koperasi Nelayan Mina Sejahtera",
+      "lokasi": "Pasuruan, Jawa Timur",
+      "jarak_km": 38,
+      "kontak": "084567890123",
+      "tier_accepted": ["Tier2_Sedang", "Tier3_Prima"],
+      "kapasitas_kg": 300,
+      "keterangan": "Pasar regional antarkabupaten"
+    },
+    {
+      "id": "off_005",
+      "nama": "Pabrik Pindang Pak Slamet",
+      "lokasi": "Bangil, Jawa Timur",
+      "jarak_km": 31,
+      "kontak": "085678901234",
+      "tier_accepted": ["Tier1_Kritis"],
+      "kapasitas_kg": 150,
+      "keterangan": "Pengolahan pindang dan ikan asin"
+    },
+    {
+      "id": "off_006",
+      "nama": "Pasar Ikan TPI Brondong",
+      "lokasi": "Lamongan, Jawa Timur",
+      "jarak_km": 12,
+      "kontak": "086789012345",
+      "tier_accepted": ["Tier1_Kritis", "Tier2_Sedang"],
+      "kapasitas_kg": 100,
+      "keterangan": "Jual cepat lokal, tidak perlu transport jauh"
+    }
+  ]
+}
