@@ -1,0 +1,22 @@
+services:
+  ai-engine:
+    build: ./ai-engine
+    expose:
+      - "8001"
+    networks:
+      - aquaroute-net
+
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      AI_ENGINE_URL: http://ai-engine:8001
+    depends_on:
+      - ai-engine
+    networks:
+      - aquaroute-net
+
+networks:
+  aquaroute-net:
+    driver: bridge
