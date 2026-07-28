@@ -31,3 +31,8 @@ backend/backend
 .idea/
 .DS_Store
 Thumbs.db
+
+# Local test images (exclude specific files with ! if needed for docs/README)
+*.jpg
+*.jpeg
+*.png
