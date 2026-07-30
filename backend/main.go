@@ -28,12 +28,32 @@ func main() {
 		},
 	}
 
+	allowedOrigin := getEnv("CORS_ALLOW_ORIGIN", "http://localhost:3000")
+
 	router := gin.Default()
+	router.Use(corsMiddleware(allowedOrigin))
 	router.POST("/api/v1/predict", h.Predict)
 
 	log.Printf("AquaRoute backend listening on :%s (AI engine: %s)", port, aiEngineURL)
 	if err := router.Run(":" + port); err != nil {
 		log.Fatalf("server failed: %v", err)
+	}
+}
+
+// corsMiddleware allows the Next.js frontend (browser) to call the backend.
+// curl works without this because CORS is enforced only by browsers.
+func corsMiddleware(allowedOrigin string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Header("Access-Control-Allow-Origin", allowedOrigin)
+		c.Header("Access-Control-Allow-Methods", "POST, OPTIONS")
+		c.Header("Access-Control-Allow-Headers", "Content-Type")
+
+		if c.Request.Method == http.MethodOptions {
+			c.AbortWithStatus(http.StatusNoContent)
+			return
+		}
+
+		c.Next()
 	}
 }
 
