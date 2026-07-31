@@ -59,8 +59,10 @@ Sumber: dokumen resmi panitia. Pelanggaran bisa berakibat diskualifikasi.
 - **AI Engine**: hanya core inference, parameter statis saat demo. Tidak ada auto-tuning, **bulk testing scripts**, atau feedback loop otomatis
 - Proyek dikerjakan HANYA dalam rentang 17 Juni – 25 Agustus 2026 — bukan lanjutan proyek lama
 
-### Model AI — Syarat Fine-tuning
-- Karena `best_visual.pt` di-fine-tune dari base MobileNetV3-Small (bukan cuma dipakai mentah), ini SUDAH memenuhi syarat "wajib fine-tuning untuk model pihak ketiga/pre-trained"
+### Model AI — Orisinalitas (dilatih dari nol)
+- `best_visual.pt` **dilatih dari nol** (`weights=None`, TIDAK memakai bobot pretrained ImageNet sama sekali), hanya meminjam arsitektur publik MobileNetV3-Small
+- Karena tidak memakai bobot pretrained apa pun, syarat "wajib fine-tuning untuk model pihak ketiga/pre-trained" di rulebook lomba **tidak secara ketat berlaku** — itu ditujukan untuk model yang mewarisi bobot pihak ketiga
+- Pendekatan full-training-dari-nol ini justru **klaim orisinalitas yang lebih kuat** dibanding sekadar fine-tuning: model ini dibangun sendiri, bukan menumpang bobot orang lain
 - Re-labeling Day→Tier (skema baru, bukan skema asli DaFiF) memperkuat orisinalitas
 
 ### Deliverables Wajib (submit paling lambat 25 Agustus 2026, 23.55 WIB)
