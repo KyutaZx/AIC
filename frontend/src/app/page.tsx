@@ -8,6 +8,8 @@ import IceToggle from '@/components/IceToggle';
 import JamInput from '@/components/JamInput';
 import TierBadge from '@/components/TierBadge';
 import ConfidenceBar from '@/components/ConfidenceBar';
+import HeatmapOverlay from '@/components/HeatmapOverlay';
+import SNIIndicator from '@/components/SNIIndicator';
 import LowConfidenceWarning from '@/components/LowConfidenceWarning';
 import IceDegradedNote from '@/components/IceDegradedNote';
 import OfftakerList from '@/components/OfftakerList';
@@ -84,6 +86,8 @@ export default function Home() {
           <ConfidenceBar confidence={result.confidence} />
           {result.low_confidence_warning && <LowConfidenceWarning />}
           {result.ice_degraded && <IceDegradedNote />}
+          <HeatmapOverlay heatmapBase64={result.heatmap_base64} />
+          <SNIIndicator sniIndikator={result.sni_indikator} />
           <div
             className={`flex items-start gap-3 rounded-2xl border border-slate-200/80 border-l-4 bg-white p-4 shadow-sm ${
               TIER_ACCENT[result.tier] ?? 'border-l-slate-400'

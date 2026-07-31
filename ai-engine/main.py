@@ -10,7 +10,7 @@ from fastapi.responses import JSONResponse
 from PIL import Image, UnidentifiedImageError
 from pydantic import BaseModel
 
-from model import load_model, predict
+from model import generate_heatmap, load_model, predict
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("ai-engine")
@@ -26,6 +26,7 @@ class InferenceResponse(BaseModel):
     tier: str
     confidence: float
     probabilities: dict[str, float]
+    heatmap_base64: str | None = None
 
 
 @app.on_event("startup")
@@ -61,4 +62,8 @@ async def inference(payload: InferenceRequest) -> InferenceResponse:
         raise HTTPException(status_code=400, detail="Uploaded data is not a valid image")
 
     result = predict(image)
+
+    # Grad-CAM runs synchronously as part of the same request (no background job).
+    result["heatmap_base64"] = generate_heatmap(image, result["tier"])
+
     return InferenceResponse(**result)

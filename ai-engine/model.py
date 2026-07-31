@@ -1,8 +1,11 @@
 """AquaRoute AI visual model: MobileNetV3-Small, 3-class tier classifier."""
 
+import base64
+import io
 import os
 from typing import Dict, Optional
 
+import numpy as np
 import torch
 import torch.nn as nn
 from PIL import Image
@@ -25,6 +28,7 @@ _preprocess = transforms.Compose(
 
 _device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 _model: Optional["AquaRouteVisualModel"] = None
+_gradcam: Optional["GradCAM"] = None
 
 
 class AquaRouteVisualModel(nn.Module):
@@ -52,13 +56,84 @@ class AquaRouteVisualModel(nn.Module):
         return self.classifier(v)
 
 
+class GradCAM:
+    """Grad-CAM heatmap generator.
+
+    Hooks the last convolutional layer inside the feature extractor
+    (``model.visual[0][-1]``) — the final point that still keeps spatial
+    information before avgpool flattens it into a vector.
+    """
+
+    def __init__(self, model: AquaRouteVisualModel) -> None:
+        self.model = model
+        # model.visual[0] is backbone.features; its last layer is the final
+        # conv-norm-activation block before avgpool.
+        self.target_layer = model.visual[0][-1]
+        self._activations: Optional[torch.Tensor] = None
+        self._gradients: Optional[torch.Tensor] = None
+        self.target_layer.register_forward_hook(self._save_activation)
+        self.target_layer.register_full_backward_hook(self._save_gradient)
+
+    def _save_activation(self, module, inputs, output) -> None:
+        self._activations = output.detach()
+
+    def _save_gradient(self, module, grad_input, grad_output) -> None:
+        self._gradients = grad_output[0].detach()
+
+    def generate(self, tensor: torch.Tensor, class_idx: int) -> np.ndarray:
+        """Return a normalized (0-1) HxW class activation map for class_idx."""
+        self.model.zero_grad()
+        logits = self.model(tensor)
+        score = logits[0, class_idx]
+        score.backward()
+
+        # Weight each channel by the spatial mean of its gradient, then combine.
+        weights = self._gradients.mean(dim=(2, 3), keepdim=True)  # (1, C, 1, 1)
+        cam = (weights * self._activations).sum(dim=1).squeeze(0)  # (H, W)
+        cam = torch.relu(cam)
+
+        cam = cam - cam.min()
+        cam_max = cam.max()
+        if cam_max > 0:
+            cam = cam / cam_max
+        return cam.cpu().numpy()
+
+
+def _jet_colormap(gray: np.ndarray) -> np.ndarray:
+    """Map a 0-1 grayscale array to a jet-style RGB array (0-255, uint8-ready)."""
+    x = np.clip(gray, 0.0, 1.0)
+    four = 4.0 * x
+    r = np.clip(np.minimum(four - 1.5, -four + 4.5), 0.0, 1.0)
+    g = np.clip(np.minimum(four - 0.5, -four + 3.5), 0.0, 1.0)
+    b = np.clip(np.minimum(four + 0.5, -four + 2.5), 0.0, 1.0)
+    return np.stack([r, g, b], axis=-1) * 255.0
+
+
+def _overlay_heatmap(image: Image.Image, cam: np.ndarray, alpha: float = 0.4) -> str:
+    """Resize cam to 224x224, colorize, alpha-blend over the photo, return base64 JPEG."""
+    base = image.convert("RGB").resize((224, 224))
+    base_arr = np.asarray(base).astype(np.float32)
+
+    # cam is a small map (e.g. 7x7); upscale to the display size with interpolation.
+    cam_img = Image.fromarray((cam * 255).astype(np.uint8)).resize((224, 224), Image.BILINEAR)
+    cam_resized = np.asarray(cam_img).astype(np.float32) / 255.0
+
+    heatmap = _jet_colormap(cam_resized)
+    overlay = (1.0 - alpha) * base_arr + alpha * heatmap
+    overlay = np.clip(overlay, 0, 255).astype(np.uint8)
+
+    buffer = io.BytesIO()
+    Image.fromarray(overlay).save(buffer, format="JPEG", quality=85)
+    return base64.b64encode(buffer.getvalue()).decode("ascii")
+
+
 def load_model() -> AquaRouteVisualModel:
     """Load best_visual.pt from disk once and cache it in memory.
 
     Raises FileNotFoundError with a clear message if the weights file is missing,
     since best_visual.pt is not checked into the repo and must be copied in manually.
     """
-    global _model
+    global _model, _gradcam
 
     if not os.path.isfile(MODEL_PATH):
         raise FileNotFoundError(
@@ -74,6 +149,7 @@ def load_model() -> AquaRouteVisualModel:
     model.eval()
 
     _model = model
+    _gradcam = GradCAM(model)
     return model
 
 
@@ -103,3 +179,20 @@ def predict(image: Image.Image) -> Dict[str, object]:
         "confidence": confidence,
         "probabilities": probs,
     }
+
+
+def generate_heatmap(image: Image.Image, class_name: str) -> Optional[str]:
+    """Generate a Grad-CAM overlay (base64 JPEG) for the given predicted class.
+
+    Runs synchronously as part of the same request. Returns None if the model
+    has not been loaded yet.
+    """
+    if _gradcam is None:
+        return None
+
+    rgb = image.convert("RGB")
+    class_idx = CLASS_NAMES.index(class_name)
+    tensor = _preprocess(rgb).unsqueeze(0).to(_device)
+
+    cam = _gradcam.generate(tensor, class_idx)
+    return _overlay_heatmap(rgb, cam)

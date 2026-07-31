@@ -17,6 +17,8 @@ export interface PredictSuccess {
   rekomendasi: string;
   low_confidence_warning: boolean;
   ice_degraded: boolean;
+  sni_indikator: string;
+  heatmap_base64: string;
   offtakers: Offtaker[];
 }
 

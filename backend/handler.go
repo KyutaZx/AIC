@@ -36,6 +36,7 @@ type aiInferenceResponse struct {
 	Tier          string             `json:"tier"`
 	Confidence    float64            `json:"confidence"`
 	Probabilities map[string]float64 `json:"probabilities"`
+	HeatmapBase64 string             `json:"heatmap_base64"`
 }
 
 type offtakerResponse struct {
@@ -123,7 +124,11 @@ func (h *Handler) Predict(c *gin.Context) {
 		"rekomendasi":            meta.Rekomendasi,
 		"low_confidence_warning": aiResp.Confidence < lowConfidenceThreshold,
 		"ice_degraded":           iceDegraded,
-		"offtakers":              offtakerList,
+		// sni_indikator is keyed on the FINAL tier (after has_ice degradation),
+		// not the raw tier from the AI Engine.
+		"sni_indikator":  sniIndikator[finalTier],
+		"heatmap_base64": aiResp.HeatmapBase64,
+		"offtakers":      offtakerList,
 	})
 }
 
