@@ -57,18 +57,30 @@ class AquaRouteVisualModel(nn.Module):
 
 
 class GradCAM:
-    """Grad-CAM heatmap generator.
+    """Grad-CAM++ heatmap generator.
 
-    Hooks the last convolutional layer inside the feature extractor
-    (``model.visual[0][-1]``) — the final point that still keeps spatial
-    information before avgpool flattens it into a vector.
+    Two deliberate choices improve localization over textbook Grad-CAM on the
+    last conv layer (see docs/FINDINGS.md for the evaluation that motivated them):
+
+    1. Target layer = ``model.visual[0][8]`` — the deepest MobileNetV3-Small
+       feature block that still runs at 14x14 spatial resolution, instead of the
+       final 7x7 block (``[-1]``/index 12). Double the spatial resolution gives
+       markedly sharper, less "leaky" heatmaps on slender/vertical fish.
+    2. Grad-CAM++ channel weighting instead of plain gradient averaging, which
+       localizes onto the fish body more reliably when the object is thin or
+       reflective (weak, spatially spread gradients).
+
+    The model weights are never touched; this is an inference-time visualization
+    change only.
     """
+
+    # Index of the last 14x14 block in backbone.features (blocks 9-12 drop to 7x7).
+    TARGET_BLOCK = 8
 
     def __init__(self, model: AquaRouteVisualModel) -> None:
         self.model = model
-        # model.visual[0] is backbone.features; its last layer is the final
-        # conv-norm-activation block before avgpool.
-        self.target_layer = model.visual[0][-1]
+        # model.visual[0] is backbone.features.
+        self.target_layer = model.visual[0][self.TARGET_BLOCK]
         self._activations: Optional[torch.Tensor] = None
         self._gradients: Optional[torch.Tensor] = None
         self.target_layer.register_forward_hook(self._save_activation)
@@ -81,15 +93,26 @@ class GradCAM:
         self._gradients = grad_output[0].detach()
 
     def generate(self, tensor: torch.Tensor, class_idx: int) -> np.ndarray:
-        """Return a normalized (0-1) HxW class activation map for class_idx."""
+        """Return a normalized (0-1) HxW class activation map for class_idx (Grad-CAM++)."""
         self.model.zero_grad()
         logits = self.model(tensor)
         score = logits[0, class_idx]
         score.backward()
 
-        # Weight each channel by the spatial mean of its gradient, then combine.
-        weights = self._gradients.mean(dim=(2, 3), keepdim=True)  # (1, C, 1, 1)
-        cam = (weights * self._activations).sum(dim=1).squeeze(0)  # (H, W)
+        grads = self._gradients  # (1, C, H, W)
+        acts = self._activations  # (1, C, H, W)
+
+        # Grad-CAM++ pixel weights: alpha combines 2nd/3rd-order gradient terms so
+        # that each spatial location contributes proportionally to its positive
+        # influence on the class score (better for small/thin activations).
+        grads_2 = grads.pow(2)
+        grads_3 = grads.pow(3)
+        denom = 2.0 * grads_2 + (acts * grads_3).sum(dim=(2, 3), keepdim=True)
+        denom = torch.where(denom != 0.0, denom, torch.ones_like(denom))
+        alpha = grads_2 / denom
+        weights = (alpha * torch.relu(grads)).sum(dim=(2, 3), keepdim=True)  # (1, C, 1, 1)
+
+        cam = (weights * acts).sum(dim=1).squeeze(0)  # (H, W)
         cam = torch.relu(cam)
 
         cam = cam - cam.min()

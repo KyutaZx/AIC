@@ -5,8 +5,12 @@ AquaRoute AI (MobileNetV3-Small, klasifikasi 3 tier). Tujuannya: transparansi
 metodologi — apa yang dicoba, apa yang berhasil, apa yang tidak, dan mengapa.
 
 **Status model saat ini: v1 aktif (akurasi 99.21%).** Keterbatasan explainability
-di bawah ini diketahui, terdokumentasi, dan masuk roadmap pasca-MVP — bukan
-sesuatu yang disembunyikan.
+di bawah ini diketahui, terdokumentasi, dan sebagian sudah ditindaklanjuti di sisi
+visualisasi (lihat bagian 6) — bukan sesuatu yang disembunyikan.
+
+**Update terakhir:** akar masalah kemungkinan besar adalah *kualitas visualisasi*,
+bukan model. Grad-CAM di-upgrade ke **Grad-CAM++ pada layer 14x14** (bagian 6) —
+bobot model `best_visual.pt` (v1) TIDAK diubah sama sekali.
 
 ---
 
@@ -85,17 +89,56 @@ ini.
 
 ## 5. Roadmap (pasca-MVP)
 
-Investigasi lanjutan, **di luar scope MVP** dan tidak menghalangi rilis:
+Investigasi lanjutan (sebagian **sudah dikerjakan**, lihat bagian 6):
 
-- Grad-CAM resolusi lebih tinggi dengan mem-hook layer conv lebih awal (peta 14x14
-  / 28x28) untuk memastikan apakah "panas di tepi" hanya artefak resolusi 7x7.
-- Coba **Grad-CAM++** atau Score-CAM untuk lokalisasi objek ramping yang lebih baik.
-- **Segmentasi ikan sebelum inference** (mask background) untuk menguji langsung
+- ✅ Grad-CAM resolusi lebih tinggi (peta 14x14) — **diadopsi**.
+- ✅ **Grad-CAM++** untuk lokalisasi objek ramping — **diadopsi**.
+- ⬜ Score-CAM — belum dicoba (pasca-MVP).
+- ⬜ **Segmentasi ikan sebelum inference** (mask background) untuk menguji langsung
   apakah keputusan berubah tanpa isyarat background — uji kausal spurious
-  correlation yang sesungguhnya.
+  correlation yang sesungguhnya. Ini uji terhadap MODEL, di luar scope MVP.
 
 ---
 
-*Catatan metodologi: seluruh angka Grad-CAM di atas dihasilkan dari peta aktivasi
-7x7 yang dinormalisasi (0–1) pada conv layer terakhir; "cincin tepi" = proporsi
-energi peta di bingkai terluar 1 sel sebagai proksi kasar atensi background.*
+## 6. Perbaikan kualitas Grad-CAM (inference-time, model TIDAK diubah)
+
+Menindaklanjuti kesimpulan bagian 4 (akar masalah = kualitas visualisasi, bukan
+model), metode Grad-CAM di `ai-engine/model.py` diperbaiki **tanpa menyentuh bobot
+model v1** — murni cara menghasilkan heatmap.
+
+Dua perubahan, diuji bertahap terhadap 5 foto yang sama (baseline = Grad-CAM standar
+v1 pada layer 7x7, diukur ulang pada model v1 — bukan angka v2 di bagian 2):
+
+- **Tahap 1 — target layer 14x14.** Hook dipindah dari blok konv terakhir
+  (`features[12]`, 7x7) ke blok 14x14 terdalam (`features[8]`). Membaik untuk
+  ikan1/2/3 tapi belum cukup untuk ikan1 (badan ikan masih dingin).
+- **Tahap 2 — Guided Grad-CAM.** Ditolak: tidak memperbaiki ikan1, hasilnya berupa
+  bintik piksel jarang yang sulit ditafsir untuk pertanyaan "badan vs background",
+  dan menambah beban inferensi (override ReLU) yang tak sepadan untuk MVP sinkron.
+- **Tahap 3 — Grad-CAM++ pada layer 14x14 → DIADOPSI.**
+
+Metrik "cincin tepi" (proporsi energi peta di bingkai terluar 32px pada citra 224px;
+setara cincin luar 7x7 sehingga sebanding lintas resolusi):
+
+| Foto | v1 baseline 7x7 | Grad-CAM++ 14x14 | Keterangan |
+|---|---|---|---|
+| ikan1 (nampan hijau, vertikal) | 57.6% | **38.6%** | ✅ badan ikan kini tersorot, bukan tepi nampan |
+| ikan2 (polos) | 59.6% | **38.3%** | ✅ panas di badan/sirip |
+| ikan3 (polos, tadinya bermasalah) | 61.2% | **26.9%** | ✅ panas mengikuti kontur ikan |
+| ikan4 (polos) | 27.5% | **20.9%** | ✅ panas di kepala/badan |
+| ikan5 (nampan hijau, horizontal) | 41.2% | 49.7% | ⚠️ satu-satunya yang tidak membaik (badan ikan mepet tepi frame) |
+
+**Kesimpulan:** Grad-CAM++ pada 14x14 memperbaiki 4/5 kasus, termasuk dua kasus
+bermasalah yang didokumentasikan (ikan1 & ikan3), baik secara metrik maupun visual.
+Ini memperkuat hipotesis bagian 4: masalahnya di alat visualisasi, bukan bias model.
+ikan5 tidak membaik — kemungkinan properti model v1 yang sebenarnya pada foto itu,
+bukan sekadar artefak resolusi; jadi tetap dicatat jujur sebagai keterbatasan.
+
+Perubahan hanya di kelas `GradCAM` (`ai-engine/model.py`); output prediksi (tier,
+confidence) identik dengan sebelumnya.
+
+---
+
+*Catatan metodologi: angka Grad-CAM baseline bagian 1–4 dihasilkan dari peta 7x7
+yang dinormalisasi (0–1); "cincin tepi" bagian 6 diukur pada citra 224px (bingkai
+32px) agar sebanding lintas resolusi peta.*
