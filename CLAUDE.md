@@ -24,10 +24,11 @@ Baca semua dokumen ini sebelum mulai bekerja:
 - `docs/DESIGN.md` — UI/UX flow, design system, komponen
 - `docs/OFFTAKER.md` — struktur offtaker_pool.json, business rules Tier
 - `docs/RULES.md` — coding conventions, commit style
+- `docs/FINDINGS.md` — investigasi explainability Grad-CAM (temuan, eksperimen, perbaikan) — penting untuk bagian metodologi proposal
 
 ## Output Model AI
 ```json
-{"tier": "Tier3_Prima", "confidence": 0.98, "probabilities": {"Tier1_Kritis": 0.01, "Tier2_Sedang": 0.01, "Tier3_Prima": 0.98}}
+{"tier": "Tier3_Prima", "confidence": 0.98, "probabilities": {"Tier1_Kritis": 0.01, "Tier2_Sedang": 0.01, "Tier3_Prima": 0.98}, "heatmap_base64": "...", "sni_indikator": "..."}
 ```
 
 Tier mapping:
@@ -59,11 +60,10 @@ Sumber: dokumen resmi panitia. Pelanggaran bisa berakibat diskualifikasi.
 - **AI Engine**: hanya core inference, parameter statis saat demo. Tidak ada auto-tuning, **bulk testing scripts**, atau feedback loop otomatis
 - Proyek dikerjakan HANYA dalam rentang 17 Juni – 25 Agustus 2026 — bukan lanjutan proyek lama
 
-### Model AI — Orisinalitas (dilatih dari nol)
-- `best_visual.pt` **dilatih dari nol** (`weights=None`, TIDAK memakai bobot pretrained ImageNet sama sekali), hanya meminjam arsitektur publik MobileNetV3-Small
-- Karena tidak memakai bobot pretrained apa pun, syarat "wajib fine-tuning untuk model pihak ketiga/pre-trained" di rulebook lomba **tidak secara ketat berlaku** — itu ditujukan untuk model yang mewarisi bobot pihak ketiga
-- Pendekatan full-training-dari-nol ini justru **klaim orisinalitas yang lebih kuat** dibanding sekadar fine-tuning: model ini dibangun sendiri, bukan menumpang bobot orang lain
+### Model AI — Syarat Fine-tuning
+- `best_visual.pt` di-fine-tune dari MobileNetV3-Small dengan bobot pretrained ImageNet (early layer frozen, 3 block terakhir + classifier di-unfreeze dan dilatih) — ini memenuhi syarat "wajib fine-tuning untuk model pihak ketiga/pre-trained" secara langsung dan standar
 - Re-labeling Day→Tier (skema baru, bukan skema asli DaFiF) memperkuat orisinalitas
+- Grad-CAM (explainability) di-upgrade ke **Grad-CAM++ pada layer 14x14** untuk localization lebih akurat — bobot model TIDAK diubah, murni perbaikan visualisasi. Detail lengkap investigasi & keterbatasan yang masih ada: `docs/FINDINGS.md`
 
 ### Deliverables Wajib (submit paling lambat 25 Agustus 2026, 23.55 WIB)
 
@@ -78,6 +78,7 @@ Sumber: dokumen resmi panitia. Pelanggaran bisa berakibat diskualifikasi.
 - Nama file/judul: `COMPFEST 18 AIC: PROOF OF WORK - [Nama Tim] - [Nama Proyek]`
 - Wajib layar ganda (terminal + aplikasi berjalan bersamaan) + timestamp terlihat
 - Boleh fast-forward saat loading, **DILARANG KERAS cut/potong video**
+- Pilih foto demo yang heatmap Grad-CAM-nya sudah terbukti akurat (background bersih atau ikan horizontal — lihat `docs/FINDINGS.md` untuk kasus yang aman dipakai)
 
 **3. Video Promosi** (maks 5 menit)
 - Upload YouTube, visibility **Public**
@@ -87,6 +88,7 @@ Sumber: dokumen resmi panitia. Pelanggaran bisa berakibat diskualifikasi.
 
 **4. Proposal Proyek** (PDF, maks 20 halaman — di luar cover/pustaka/lampiran)
 - Wajib memuat: Judul & Nama Kelompok, Latar Belakang, Tujuan & Manfaat, Metodologi (alur dataset, alur pengembangan model, alur integrasi kode, justifikasi teknologi berbasis data), Kesimpulan
+- Manfaatkan `docs/FINDINGS.md` untuk bagian metodologi — investigasi Grad-CAM (temuan → eksperimen v2 → uji hipotesis orientasi → perbaikan Grad-CAM++) adalah bukti kuat rigor ilmiah untuk kriteria "Kualitas Proposal & Proses Pengembangan"
 
 ### Bobot Penilaian (total 105%) — prioritaskan sesuai ini
 | Kriteria | Bobot | Fokus |
@@ -109,9 +111,15 @@ Sumber: dokumen resmi panitia. Pelanggaran bisa berakibat diskualifikasi.
 ✅ Backend (Golang Gin) — tested end-to-end via docker compose up
 ✅ Frontend (React/Next.js + Tailwind) — sudah jalan di port 3000, upload foto → tampil hasil + heatmap
 ✅ Docker Compose — 3 service (ai-engine + backend + frontend) jalan bersama via docker compose up
+✅ GitHub repo — public, README lengkap, Conventional Commits
+⬜ Proposal PDF — belum
+⬜ Video Proof of Work — belum
+⬜ Video Promosi — belum
 ```
-MVP sudah lengkap end-to-end. Sisa fokus: deliverables lomba (README, video, proposal) & polish.
+
+MVP sudah lengkap end-to-end. Sisa fokus: deliverables lomba (Proposal, Video Proof of Work, Video Promosi) & polish minor.
 
 ## Cara Kerja dengan Claude Code
-- Satu komponen selesai → commit → lanjut komponen berikutnya
+- Satu komponen selesai → commit → push ke GitHub
+- MVP (AI Engine, Backend, Frontend, Docker Compose) sudah selesai — fokus berikutnya di luar coding: Proposal, Video
 - Selalu jalankan `docker compose up` untuk test, bukan jalankan service manual
