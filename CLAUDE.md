@@ -2,7 +2,7 @@
 
 ## Identitas Project
 - **Kompetisi**: AI Innovation Challenge (AIC) COMPFEST 18 — Sub-tema Smart Logistics
-- **Deadline**: 25 Agustus 2026, pukul 23.55 WIB (~4 minggu dari sekarang)
+- **Deadline**: 25 Agustus 2026, pukul 23.55 WIB (~3,5 minggu lagi per 1 Agustus 2026)
 - **Nama sistem**: AquaRoute AI
 
 ## Problem
@@ -104,14 +104,14 @@ Sumber: dokumen resmi panitia. Pelanggaran bisa berakibat diskualifikasi.
 
 ## Status Progress
 ```
-✅ Model best_visual.pt — v1 aktif (akurasi 99.21%), backup di Google Drive. Keterbatasan Grad-CAM diketahui & terdokumentasi (lihat docs/FINDINGS.md); eksperimen v2 ditolak.
-✅ AI Engine (FastAPI) — sudah jalan, model ter-load, endpoint /ai/inference berfungsi
-✅ Backend (Golang Gin) — AI Engine + Backend tested end-to-end via docker compose up
-⬜ Frontend (React/Next.js) — belum
-✅ Docker Compose — AI Engine + Backend tested end-to-end via docker compose up
+✅ Model best_visual.pt — v1 aktif (akurasi 99.21%), backup di Google Drive. Eksperimen v2 ditolak; Grad-CAM di-upgrade ke Grad-CAM++ pada layer 14x14 (bobot model tidak diubah). Detail: docs/FINDINGS.md.
+✅ AI Engine (FastAPI) — sudah jalan, model ter-load, endpoint /ai/inference + heatmap Grad-CAM berfungsi
+✅ Backend (Golang Gin) — tested end-to-end via docker compose up
+✅ Frontend (React/Next.js + Tailwind) — sudah jalan di port 3000, upload foto → tampil hasil + heatmap
+✅ Docker Compose — 3 service (ai-engine + backend + frontend) jalan bersama via docker compose up
 ```
+MVP sudah lengkap end-to-end. Sisa fokus: deliverables lomba (README, video, proposal) & polish.
 
 ## Cara Kerja dengan Claude Code
 - Satu komponen selesai → commit → lanjut komponen berikutnya
-- Urutan: AI Engine → Backend → Docker Compose (test end-to-end) → Frontend
 - Selalu jalankan `docker compose up` untuk test, bukan jalankan service manual
