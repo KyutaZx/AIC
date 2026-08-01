@@ -104,7 +104,7 @@ Sumber: dokumen resmi panitia. Pelanggaran bisa berakibat diskualifikasi.
 
 ## Status Progress
 ```
-✅ Model best_visual.pt — sudah ada, backup di Google Drive
+✅ Model best_visual.pt — v1 aktif (akurasi 99.21%), backup di Google Drive. Keterbatasan Grad-CAM diketahui & terdokumentasi (lihat docs/FINDINGS.md); eksperimen v2 ditolak.
 ✅ AI Engine (FastAPI) — sudah jalan, model ter-load, endpoint /ai/inference berfungsi
 ✅ Backend (Golang Gin) — AI Engine + Backend tested end-to-end via docker compose up
 ⬜ Frontend (React/Next.js) — belum
