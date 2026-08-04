@@ -63,7 +63,7 @@ Sumber: dokumen resmi panitia. Pelanggaran bisa berakibat diskualifikasi.
 ### Model AI — Syarat Fine-tuning
 - `best_visual.pt` di-fine-tune dari MobileNetV3-Small dengan bobot pretrained ImageNet (early layer frozen, 3 block terakhir + classifier di-unfreeze dan dilatih) — ini memenuhi syarat "wajib fine-tuning untuk model pihak ketiga/pre-trained" secara langsung dan standar
 - Re-labeling Day→Tier (skema baru, bukan skema asli DaFiF) memperkuat orisinalitas
-- Grad-CAM (explainability) di-upgrade ke **Grad-CAM++ pada layer 14x14** untuk localization lebih akurat — bobot model TIDAK diubah, murni perbaikan visualisasi. Detail lengkap investigasi & keterbatasan yang masih ada: `docs/FINDINGS.md`
+- Grad-CAM (explainability) memakai **basic Grad-CAM pada layer konv terakhir** — bobot model TIDAK diubah, murni visualisasi. (Eksperimen Grad-CAM++ 14x14 sempat diadopsi untuk model awal tapi TIDAK transfer ke model retrain, jadi dikembalikan ke basic.) Detail lengkap investigasi & keterbatasan yang masih ada: `docs/FINDINGS.md`
 
 ### Deliverables Wajib (submit paling lambat 25 Agustus 2026, 23.55 WIB)
 

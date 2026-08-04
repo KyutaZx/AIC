@@ -179,7 +179,7 @@ AIC/
 - **Akurasi test set**: 85.00%
 - **Dataset**: DaFiF — Prasetyo et al. (2024), *"DaFiF: A Complete Dataset for Fish's Freshness Problems"*, Data in Brief
 
-Model dilatih dari nol (bukan fine-tuning bobot pretrained ImageNet) menggunakan skema label baru (Day→Tier) yang berbeda dari skema asli dataset DaFiF.
+Model di-fine-tune dari bobot pretrained ImageNet (early layers di-freeze, 3 block terakhir + classifier dilatih ulang) menggunakan skema label baru (Day→Tier) yang berbeda dari skema asli dataset DaFiF.
 
 ---
 
@@ -230,6 +230,7 @@ Dokumentasi teknis lebih detail tersedia di folder [`docs/`](./docs):
 - [`DESIGN.md`](./docs/DESIGN.md) — UI/UX flow dan design system
 - [`OFFTAKER.md`](./docs/OFFTAKER.md) — Struktur data offtaker dan business rules
 - [`RULES.md`](./docs/RULES.md) — Coding conventions
+- [`FINDINGS.md`](./docs/FINDINGS.md) — Investigasi explainability Grad-CAM & metodologi model
 
 ---
 
