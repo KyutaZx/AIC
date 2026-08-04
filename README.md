@@ -176,7 +176,7 @@ AIC/
 - **Arsitektur**: Visual-only CNN berbasis MobileNetV3-Small (bukan model fusion)
 - **Input**: Foto ikan utuh (224×224, normalisasi ImageNet)
 - **Output**: Klasifikasi 3 Tier (Kritis/Sedang/Prima) beserta confidence score
-- **Akurasi test set**: 99.21%
+- **Akurasi test set**: 85.00%
 - **Dataset**: DaFiF — Prasetyo et al. (2024), *"DaFiF: A Complete Dataset for Fish's Freshness Problems"*, Data in Brief
 
 Model dilatih dari nol (bukan fine-tuning bobot pretrained ImageNet) menggunakan skema label baru (Day→Tier) yang berbeda dari skema asli dataset DaFiF.

@@ -4,13 +4,16 @@ Dokumen ini mencatat kronologi jujur investigasi kualitas atensi model visual
 AquaRoute AI (MobileNetV3-Small, klasifikasi 3 tier). Tujuannya: transparansi
 metodologi — apa yang dicoba, apa yang berhasil, apa yang tidak, dan mengapa.
 
-**Status model saat ini: v1 aktif (akurasi 99.21%).** Keterbatasan explainability
-di bawah ini diketahui, terdokumentasi, dan sebagian sudah ditindaklanjuti di sisi
-visualisasi (lihat bagian 6) — bukan sesuatu yang disembunyikan.
+**Status model saat ini: model retrain aktif (akurasi 85.00% pada split bebas
+kebocoran data).** Keterbatasan explainability di bawah ini diketahui, terdokumentasi,
+dan sebagian sudah ditindaklanjuti di sisi visualisasi — bukan sesuatu yang disembunyikan.
 
-**Update terakhir:** akar masalah kemungkinan besar adalah *kualitas visualisasi*,
-bukan model. Grad-CAM di-upgrade ke **Grad-CAM++ pada layer 14x14** (bagian 6) —
-bobot model `best_visual.pt` (v1) TIDAK diubah sama sekali.
+**Update terakhir:** ditemukan data leakage pada split awal (akurasi 99.21% yang
+*inflated*); model dilatih ulang dengan split stratified berbasis grup, akurasi turun
+ke 85.00% yang defensible. Bagian 1–6 di bawah adalah kronologi investigasi Grad-CAM
+pada model awal; temuan terbaru (data leakage, transferability Grad-CAM, studi kasus
+confidence) ada di bagian bawah dokumen. Grad-CAM++ layer 14x14 ternyata tidak transfer
+ke model retrain dan dikembalikan ke basic Grad-CAM pada layer terakhir.
 
 ---
 
@@ -142,3 +145,38 @@ confidence) identik dengan sebelumnya.
 *Catatan metodologi: angka Grad-CAM baseline bagian 1–4 dihasilkan dari peta 7x7
 yang dinormalisasi (0–1); "cincin tepi" bagian 6 diukur pada citra 224px (bingkai
 32px) agar sebanding lintas resolusi peta.*
+
+---
+
+## Temuan: Data Leakage pada Split Awal
+
+- Split train/valid/test awal dilakukan acak per-foto, bukan per grup pemotretan
+- Audit menemukan 100% grup (63/63, dikelompokkan by hari+sesi+spesies) tersebar ke lebih
+  dari satu split — konfirmasi kebocoran data
+- Perbaikan: split ulang stratified di level grup, verifikasi 0% kebocoran
+- Model dilatih ulang dengan arsitektur dan hyperparameter identik, hasil akurasi test set
+  turun dari 99.21% menjadi 85.00% — penurunan ini MENGKONFIRMASI leakage, bukan model
+  memburuk
+- Properti keselamatan utama tetap terjaga: 0 kesalahan klasifikasi Tier1_Kritis <-> Tier3_Prima
+  baik sebelum maupun sesudah perbaikan split
+- Titik lemah yang teridentifikasi: recall Tier3_Prima 65% (kelas dengan data paling sedikit,
+  15 dari 63 grup) — kesalahan mengarah ke arah aman (ikan segar dikira kurang segar, bukan
+  sebaliknya)
+
+## Temuan: Grad-CAM++ Tidak Transfer ke Model Retrained
+
+- Teknik Grad-CAM++ pada layer 14x14 yang di-tuning untuk model awal menghasilkan heatmap
+  yang jauh lebih noise saat diterapkan ke model hasil retrain (gradien dari classifier yang
+  dilatih ulang berbeda karakteristiknya)
+- Solusi: kembali ke basic Grad-CAM pada layer terakhir, hasil lebih konsisten
+- Keputusan Tier tidak terpengaruh oleh kualitas heatmap — heatmap murni alat bantu visualisasi,
+  bukan bagian dari proses keputusan klasifikasi
+
+## Studi Kasus: Peringatan Confidence Rendah Bekerja pada Foto Luar-Domain
+
+- Uji dengan foto ikan di background batu/beton basah (kondisi di luar domain dataset training
+  yang seluruhnya berupa nampan putih/bak plastik hijau, indoor)
+- Model menghasilkan confidence 57% (di bawah ambang 80%), sistem menampilkan peringatan
+  "Foto kurang jelas" — sesuai desain, bukan memberi jawaban salah dengan percaya diri
+- Ini bukti nyata bahwa mitigasi confidence-threshold berfungsi pada kasus yang genuinely sulit,
+  bukan sekadar teori

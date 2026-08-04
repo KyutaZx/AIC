@@ -45,7 +45,7 @@
 | Layer | Teknologi | Versi | Alasan |
 |---|---|---|---|
 | AI Engine | Python + FastAPI | 3.10 / 0.100+ | Standard ML serving |
-| AI Model | PyTorch + MobileNetV3-Small | 2.x | Ringan, akurat 99.21% |
+| AI Model | PyTorch + MobileNetV3-Small | 2.x | Ringan, akurat 85.00% (split bebas kebocoran) |
 | Backend | Golang + Gin | 1.21 / latest | Performa tinggi, type-safe |
 | Frontend | React + Next.js + Tailwind | 18 / 14 / 3 | SSR, mobile-friendly |
 | Container | Docker + Docker Compose | latest | Single command startup |

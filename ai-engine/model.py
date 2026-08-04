@@ -57,30 +57,35 @@ class AquaRouteVisualModel(nn.Module):
 
 
 class GradCAM:
-    """Grad-CAM++ heatmap generator.
+    """Basic Grad-CAM heatmap generator on the final feature layer.
 
-    Two deliberate choices improve localization over textbook Grad-CAM on the
-    last conv layer (see docs/FINDINGS.md for the evaluation that motivated them):
+    This deliberately uses textbook Grad-CAM (plain gradient averaging) on the
+    last convolutional block, replacing the earlier Grad-CAM++ on the 14x14
+    block-8 layer. The earlier variant was hand-tuned against the *original*
+    model and did not transfer to the retrained (leak-free split) model: with
+    the retrained classifier the block-8 Grad-CAM++ heatmaps degraded into
+    scattered noise instead of focusing on the fish. This is a transferability
+    fix — the previous code was not "wrong", it was just over-fit to one set of
+    weights. See docs/FINDINGS.md.
 
-    1. Target layer = ``model.visual[0][8]`` — the deepest MobileNetV3-Small
-       feature block that still runs at 14x14 spatial resolution, instead of the
-       final 7x7 block (``[-1]``/index 12). Double the spatial resolution gives
-       markedly sharper, less "leaky" heatmaps on slender/vertical fish.
-    2. Grad-CAM++ channel weighting instead of plain gradient averaging, which
-       localizes onto the fish body more reliably when the object is thin or
-       reflective (weak, spatially spread gradients).
+    Design:
+
+    1. Target layer = ``model.visual[0]`` (the whole backbone.features / final
+       block output), not an index into a specific inner block. The gradients of
+       the retrained classifier are cleaner and more stable at the final feature
+       map than at the mid-network 14x14 block.
+    2. Plain channel weighting: ``weights = gradients.mean(dim=(2,3))``, i.e.
+       average pooled gradients per channel, then ``cam = (weights * acts).sum``.
+       No Grad-CAM++ alpha terms.
 
     The model weights are never touched; this is an inference-time visualization
     change only.
     """
 
-    # Index of the last 14x14 block in backbone.features (blocks 9-12 drop to 7x7).
-    TARGET_BLOCK = 8
-
     def __init__(self, model: AquaRouteVisualModel) -> None:
         self.model = model
-        # model.visual[0] is backbone.features.
-        self.target_layer = model.visual[0][self.TARGET_BLOCK]
+        # model.visual[0] is backbone.features — hook the final feature block output.
+        self.target_layer = model.visual[0]
         self._activations: Optional[torch.Tensor] = None
         self._gradients: Optional[torch.Tensor] = None
         self.target_layer.register_forward_hook(self._save_activation)
@@ -93,7 +98,7 @@ class GradCAM:
         self._gradients = grad_output[0].detach()
 
     def generate(self, tensor: torch.Tensor, class_idx: int) -> np.ndarray:
-        """Return a normalized (0-1) HxW class activation map for class_idx (Grad-CAM++)."""
+        """Return a normalized (0-1) HxW class activation map for class_idx (basic Grad-CAM)."""
         self.model.zero_grad()
         logits = self.model(tensor)
         score = logits[0, class_idx]
@@ -102,16 +107,9 @@ class GradCAM:
         grads = self._gradients  # (1, C, H, W)
         acts = self._activations  # (1, C, H, W)
 
-        # Grad-CAM++ pixel weights: alpha combines 2nd/3rd-order gradient terms so
-        # that each spatial location contributes proportionally to its positive
-        # influence on the class score (better for small/thin activations).
-        grads_2 = grads.pow(2)
-        grads_3 = grads.pow(3)
-        denom = 2.0 * grads_2 + (acts * grads_3).sum(dim=(2, 3), keepdim=True)
-        denom = torch.where(denom != 0.0, denom, torch.ones_like(denom))
-        alpha = grads_2 / denom
-        weights = (alpha * torch.relu(grads)).sum(dim=(2, 3), keepdim=True)  # (1, C, 1, 1)
-
+        # Basic Grad-CAM: weight each channel by its mean gradient (global average
+        # pool over spatial dims), then take the weighted sum of activations.
+        weights = grads.mean(dim=(2, 3), keepdim=True)  # (1, C, 1, 1)
         cam = (weights * acts).sum(dim=1).squeeze(0)  # (H, W)
         cam = torch.relu(cam)
 
@@ -216,6 +214,11 @@ def generate_heatmap(image: Image.Image, class_name: str) -> Optional[str]:
     rgb = image.convert("RGB")
     class_idx = CLASS_NAMES.index(class_name)
     tensor = _preprocess(rgb).unsqueeze(0).to(_device)
+
+    # The target layer sits inside a partially-frozen backbone, so the backward
+    # hook only fires if the input tensor itself requires grad — otherwise the
+    # gradients never flow and _gradients stays None ("NoneType has no attribute").
+    tensor.requires_grad_(True)
 
     cam = _gradcam.generate(tensor, class_idx)
     return _overlay_heatmap(rgb, cam)

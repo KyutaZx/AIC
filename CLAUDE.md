@@ -106,7 +106,7 @@ Sumber: dokumen resmi panitia. Pelanggaran bisa berakibat diskualifikasi.
 
 ## Status Progress
 ```
-✅ Model best_visual.pt — v1 aktif (akurasi 99.21%), backup di Google Drive. Eksperimen v2 ditolak; Grad-CAM di-upgrade ke Grad-CAM++ pada layer 14x14 (bobot model tidak diubah). Detail: docs/FINDINGS.md.
+✅ Model best_visual.pt — retrain aktif (akurasi 85.00% pada split bebas kebocoran data; angka lama 99.21% inflated karena data leakage), backup di Google Drive. Grad-CAM dikembalikan ke basic method pada layer terakhir (Grad-CAM++ 14x14 tidak transfer ke model retrain). Detail: docs/FINDINGS.md.
 ✅ AI Engine (FastAPI) — sudah jalan, model ter-load, endpoint /ai/inference + heatmap Grad-CAM berfungsi
 ✅ Backend (Golang Gin) — tested end-to-end via docker compose up
 ✅ Frontend (React/Next.js + Tailwind) — sudah jalan di port 3000, upload foto → tampil hasil + heatmap
