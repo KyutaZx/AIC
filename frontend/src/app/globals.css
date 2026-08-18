@@ -33,3 +33,26 @@
     border-radius: 1rem;
   }
 }
+
+@keyframes shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+@keyframes water-rise {
+  0%   { transform: translateY(100%); }
+  20%  { transform: translateY(85%); }
+  50%  { transform: translateY(45%); }
+  80%  { transform: translateY(10%); }
+  100% { transform: translateY(0%); }
+}
+
+@keyframes wave-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes fade-in-up {
+  0%   { opacity: 0; transform: translateY(16px); }
+  100% { opacity: 1; transform: translateY(0); }
+}

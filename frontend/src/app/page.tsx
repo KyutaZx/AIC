@@ -20,13 +20,12 @@ import IceDegradedNote from '@/components/IceDegradedNote';
 import OfftakerList from '@/components/OfftakerList';
 
 export default function RootPage() {
-  const [view, setView] = useState<'upload' | 'result'>('upload');
+  const [view, setView] = useState<'upload' | 'loading' | 'result'>('upload');
   
   // Analisis State
   const [photoBase64, setPhotoBase64] = useState<string | null>(null);
   const [hasIce, setHasIce] = useState(true);
   const [jamInput, setJamInput] = useState('');
-  const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Result State
@@ -38,13 +37,18 @@ export default function RootPage() {
       return;
     }
     setErrorMessage(null);
-    setLoading(true);
+    setView('loading'); // Tampilkan animasi air
 
     const jamSejakTangkap = jamInput.trim() === '' ? null : Number(jamInput);
-    const response = await predictFish({ imageBase64: photoBase64, hasIce, jamSejakTangkap });
-    setLoading(false);
+
+    // Jalankan API dan minimum timer 3.5 detik secara bersamaan
+    const [response] = await Promise.all([
+      predictFish({ imageBase64: photoBase64, hasIce, jamSejakTangkap }),
+      new Promise<void>((resolve) => setTimeout(resolve, 3500)),
+    ]);
 
     if (!response.success) {
+      setView('upload');
       setErrorMessage(response.error || 'Sistem tidak tersedia. Coba beberapa saat lagi.');
       return;
     }
@@ -128,26 +132,30 @@ export default function RootPage() {
     );
   }
 
+  // Loading View — animasi air naik
+  if (view === 'loading') {
+    return <LoadingState />;
+  }
+
   // Upload View
   return (
     <main className="mx-auto min-h-screen w-full max-w-[430px] bg-white pb-10 sm:max-w-[600px] lg:max-w-[480px]">
-      {loading && <LoadingState />}
 
       {/* Header Upload */}
       <header className="sticky top-0 z-10 border-b border-[#E0E6FF] bg-white/95 backdrop-blur-sm px-4 py-3">
-        <div className="flex items-center">
-          <div className="flex-1 text-center">
-            <h1 className="text-lg font-black text-[#0A0A1A]">Analisis Ikan</h1>
-          </div>
+        <div className="flex items-center justify-center">
+          <Logo className="h-8 w-auto" />
         </div>
       </header>
 
       <div className="space-y-5 px-4 pt-5">
+        {/* Photo Guide — di atas upload */}
+        <PhotoGuide />
+
         {/* Foto section */}
         <div>
           <div className="mb-3 flex items-baseline justify-between">
             <h2 className="text-lg font-black text-[#0A0A1A]">Foto Ikan</h2>
-            <span className="text-xs font-medium text-[#4B5563]">1 ikan · badan penuh</span>
           </div>
           <PhotoUpload onPhotoSelected={setPhotoBase64} />
         </div>
@@ -155,14 +163,11 @@ export default function RootPage() {
         {/* Kondisi section */}
         <div>
           <h2 className="mb-3 text-lg font-black text-[#0A0A1A]">Kondisi Ikan</h2>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="card-freshco p-4"><IceToggle checked={hasIce} onChange={setHasIce} /></div>
-            <div className="card-freshco p-4"><JamInput value={jamInput} onChange={setJamInput} /></div>
+          <div className="grid grid-cols-2 gap-2">
+            <IceToggle checked={hasIce} onChange={setHasIce} />
+            <JamInput value={jamInput} onChange={setJamInput} />
           </div>
         </div>
-
-        {/* Photo Guide */}
-        <PhotoGuide />
 
         {/* Error */}
         {errorMessage && (
@@ -176,7 +181,7 @@ export default function RootPage() {
         <button
           type="button"
           onClick={handleSubmit}
-          disabled={!photoBase64 || loading}
+          disabled={!photoBase64}
           className="flex h-14 w-full items-center justify-center rounded-2xl bg-[#0000FF] text-base font-bold text-white transition-all hover:bg-[#0000CC] active:scale-[0.98] disabled:opacity-40 disabled:hover:bg-[#0000FF] disabled:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0000FF] focus-visible:ring-offset-2"
         >
           Analisis Ikan

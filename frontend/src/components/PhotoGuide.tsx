@@ -1,40 +1,41 @@
 'use client';
 
-import { useState } from 'react';
-import { CheckCircle2, ChevronDown, XCircle } from 'lucide-react';
+import { CheckCircle2, XCircle, Camera } from 'lucide-react';
 
 export default function PhotoGuide() {
- const [open, setOpen] = useState(false);
+  return (
+    <div className="relative overflow-hidden rounded-2xl bg-[#0000FF] px-4 py-4">
+      {/* Animated gradient blob background */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[#3333FF] opacity-60 animate-pulse" />
+        <div className="absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-[#0000CC] opacity-70 animate-pulse [animation-delay:0.7s]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-24 w-24 rounded-full bg-[#2222EE] opacity-40 animate-pulse [animation-delay:1.2s]" />
+        {/* Shimmer sweep */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-[shimmer_2.5s_infinite]" />
+      </div>
 
- return (
- <div className="card-freshco overflow-hidden">
- <button
- type="button"
- onClick={() => setOpen((value) => !value)}
- aria-expanded={open}
- className="flex min-h-[48px] w-full items-center justify-between px-4 py-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0000FF] focus-visible:ring-inset"
- >
- <span className="text-sm font-bold text-[#0A0A1A]">Panduan Foto</span>
- <ChevronDown
- className={`h-4 w-4 text-[#4B5563] transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
- aria-hidden="true"
- />
- </button>
- {open && (
- <div className="space-y-2.5 border-t border-[#E0E6FF] px-4 py-3 text-sm">
- <p className="flex items-center gap-2 font-medium text-green-700">
- <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden="true" />
- 1 ikan utuh, background bersih
- </p>
- <p className="flex items-center gap-2 font-medium text-red-600">
- <XCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
- Banyak ikan, blur, atau terpotong
- </p>
- <p className="text-[#4B5563]">
- 1 ikan utuh &bull; Background bersih &bull; Seluruh badan masuk frame
- </p>
- </div>
- )}
- </div>
- );
+      {/* Header */}
+      <div className="relative mb-3 flex items-center gap-2">
+        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white/25">
+          <Camera className="h-4 w-4 text-white" aria-hidden="true" />
+        </div>
+        <p className="text-sm font-bold text-white">Panduan Foto</p>
+      </div>
+
+      {/* Rules */}
+      <div className="relative space-y-2 text-sm">
+        <p className="flex items-center gap-2 font-semibold text-white">
+          <CheckCircle2 className="h-4 w-4 shrink-0 text-[#4ADE80]" strokeWidth={2.5} aria-hidden="true" />
+          1 ikan utuh, background bersih
+        </p>
+        <p className="flex items-center gap-2 font-semibold text-white">
+          <XCircle className="h-4 w-4 shrink-0 text-[#F87171]" strokeWidth={2.5} aria-hidden="true" />
+          Banyak ikan, blur, atau terpotong
+        </p>
+        <p className="text-white text-xs pt-1 opacity-80">
+          1 ikan utuh &bull; Background bersih &bull; Seluruh badan masuk frame
+        </p>
+      </div>
+    </div>
+  );
 }
