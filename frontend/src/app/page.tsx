@@ -5,7 +5,6 @@ import { AlertCircle, Fish, Navigation } from 'lucide-react';
 import PhotoUpload from '@/components/PhotoUpload';
 import PhotoGuide from '@/components/PhotoGuide';
 import IceToggle from '@/components/IceToggle';
-import JamInput from '@/components/JamInput';
 import TierBadge from '@/components/TierBadge';
 import ConfidenceBar from '@/components/ConfidenceBar';
 import HeatmapOverlay from '@/components/HeatmapOverlay';
@@ -25,7 +24,6 @@ const TIER_ACCENT: Record<string, string> = {
 export default function Home() {
   const [photoBase64, setPhotoBase64] = useState<string | null>(null);
   const [hasIce, setHasIce] = useState(true);
-  const [jamInput, setJamInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<PredictSuccess | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -39,11 +37,9 @@ export default function Home() {
     setErrorMessage(null);
     setLoading(true);
 
-    const jamSejakTangkap = jamInput.trim() === '' ? null : Number(jamInput);
     const response = await predictFish({
       imageBase64: photoBase64,
       hasIce,
-      jamSejakTangkap,
     });
 
     setLoading(false);
@@ -60,7 +56,6 @@ export default function Home() {
     setResult(null);
     setPhotoBase64(null);
     setErrorMessage(null);
-    setJamInput('');
     setHasIce(true);
   }
 
@@ -115,7 +110,6 @@ export default function Home() {
           <div className="space-y-4 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
             <h2 className="text-lg font-semibold text-slate-900">Kondisi Ikan</h2>
             <IceToggle checked={hasIce} onChange={setHasIce} />
-            <JamInput value={jamInput} onChange={setJamInput} />
           </div>
           {errorMessage && (
             <div className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-3 shadow-sm">

@@ -31,7 +31,7 @@ Bukan sekadar klasifikasi segar/tidak segar — ini adalah **decision-support to
 ### Yang ADA di MVP
 - Upload foto ikan → klasifikasi Tier → rekomendasi distribusi
 - Tampilkan: badge Tier berwarna, confidence %, estimasi sisa waktu, daftar offtaker
-- Input opsional: `jam_sejak_tangkap`, `has_ice` (untuk business rule backend)
+- Input opsional: `has_ice` (untuk business rule backend)
 - Panduan foto di UI (1 ikan utuh, background bersih)
 - Peringatan saat confidence < 80%
 - Mobile-responsive
@@ -76,7 +76,6 @@ Jika `confidence < 0.80`:
 - **Output**: Probabilitas 3 kelas + confidence
 - **Accuracy**: 85.00% pada test set DaFiF (diukur pada split baru yang bebas kebocoran data)
 - **File**: `best_visual.pt`
-- **`jam_sejak_tangkap`**: BUKAN input model — hanya informasi display di frontend
 
 > **Catatan akurasi**: Angka awal 99.21% ternyata *inflated* akibat data leakage — foto dari sesi pemotretan yang sama muncul di train dan test sekaligus. Setelah diperbaiki dengan split baru berbasis grup (hari + sesi + spesies) dan stratifikasi tier, akurasi final 85.00% diukur pada data yang benar-benar independen dan merupakan angka yang defensible. Detail investigasi: `docs/FINDINGS.md`.
 

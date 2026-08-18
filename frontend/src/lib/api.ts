@@ -33,7 +33,6 @@ export type PredictResponse = PredictSuccess | PredictError;
 export interface PredictParams {
   imageBase64: string;
   hasIce: boolean;
-  jamSejakTangkap: number | null;
 }
 
 export async function predictFish(params: PredictParams): Promise<PredictResponse> {
@@ -44,7 +43,6 @@ export async function predictFish(params: PredictParams): Promise<PredictRespons
       body: JSON.stringify({
         image_base64: params.imageBase64,
         has_ice: params.hasIce,
-        jam_sejak_tangkap: params.jamSejakTangkap,
       }),
     });
 

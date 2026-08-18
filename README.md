@@ -119,7 +119,7 @@ Kalau ingin menguji Backend tanpa lewat UI, gunakan `curl`:
 ```bash
 curl -X POST http://localhost:8000/api/v1/predict \
   -H "Content-Type: application/json" \
-  -d '{"image_base64": "<base64_foto_ikan>", "has_ice": true, "jam_sejak_tangkap": 4}'
+  -d '{"image_base64": "<base64_foto_ikan>", "has_ice": true}'
 ```
 
 Contoh response:

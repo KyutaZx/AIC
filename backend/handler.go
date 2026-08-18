@@ -23,9 +23,8 @@ type Handler struct {
 }
 
 type predictRequest struct {
-	ImageBase64     string `json:"image_base64" binding:"required"`
-	HasIce          bool   `json:"has_ice"`
-	JamSejakTangkap *int   `json:"jam_sejak_tangkap"`
+	ImageBase64 string `json:"image_base64" binding:"required"`
+	HasIce      bool   `json:"has_ice"`
 }
 
 type aiInferenceRequest struct {

@@ -15,7 +15,7 @@
 │  - Upload foto → POST /api/v1/predict               │
 └────────────────────────┬────────────────────────────┘
                          │ POST /api/v1/predict
-                         │ {image_base64, has_ice, jam_sejak_tangkap}
+                         │ {image_base64, has_ice}
                          ▼
 ┌─────────────────────────────────────────────────────┐
 │           Backend — Golang Gin                       │
@@ -108,8 +108,7 @@ Content-Type: application/json
 
 {
   "image_base64": "data:image/jpeg;base64,/9j/...",
-  "has_ice": true,
-  "jam_sejak_tangkap": 4        // opsional, null jika tidak diisi
+  "has_ice": true
 }
 ```
 
@@ -197,7 +196,7 @@ services:
 ## Data Flow Detail
 
 1. User upload foto di browser
-2. Frontend convert ke base64, POST ke `/api/v1/predict` dengan `has_ice` dan `jam_sejak_tangkap`
+2. Frontend convert ke base64, POST ke `/api/v1/predict` dengan `has_ice`
 3. Backend validasi payload (format foto, ukuran max 5MB)
 4. Backend POST ke AI Engine `/ai/inference` dengan image_base64
 5. AI Engine: decode base64 → PIL Image → resize 224×224 → normalize → forward pass → softmax
