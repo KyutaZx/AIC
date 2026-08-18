@@ -1,3 +1,35 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --fc-blue:       #0000FF;
+  --fc-blue-hover: #0000CC;
+  --fc-page:       #FFFFFF;
+  --fc-card:       #F5F7FF;
+  --fc-border:     #E0E6FF;
+  --fc-ink:        #0A0A1A;
+  --fc-sub:        #4B5563;
+  --fc-prima:      #16A34A;
+  --fc-prima-bg:   #F0FDF4;
+  --fc-sedang:     #D97706;
+  --fc-sedang-bg:  #FFFBEB;
+  --fc-kritis:     #DC2626;
+  --fc-kritis-bg:  #FEF2F2;
+}
+
+@layer utilities {
+  /* Chromatic-aberration / RGB-split effect — logo only */
+  .logo-glow {
+    filter:
+      drop-shadow(2px 0 0 rgba(0, 0, 255, 0.35))
+      drop-shadow(-2px 0 0 rgba(0, 180, 255, 0.25));
+  }
+
+  /* Subtle card elevation */
+  .card-freshco {
+    background-color: var(--fc-card);
+    border: 1px solid var(--fc-border);
+    border-radius: 1rem;
+  }
+}
