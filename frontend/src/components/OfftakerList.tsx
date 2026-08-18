@@ -4,12 +4,16 @@ import type { Offtaker } from '@/lib/api';
 interface OfftakerListProps {
   offtakers: Offtaker[];
   tier: string;
+  jarakReal?: boolean;
 }
 
-export default function OfftakerList({ offtakers, tier }: OfftakerListProps) {
+export default function OfftakerList({ offtakers, tier, jarakReal }: OfftakerListProps) {
   return (
     <div>
       <h2 className="text-lg font-semibold text-slate-900">Offtaker</h2>
+      <p className="mt-1 text-xs text-slate-400">
+        {jarakReal ? 'Jarak estimasi dari lokasi kamu' : 'Jarak estimasi umum dari TPI'}
+      </p>
       {tier === 'Tier1_Kritis' && (
         <p className="mt-1 text-sm font-medium text-red-600">Segera proses atau jual lokal</p>
       )}
@@ -25,7 +29,7 @@ export default function OfftakerList({ offtakers, tier }: OfftakerListProps) {
               <p className="font-semibold text-slate-900">{offtaker.nama}</p>
               <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-500">
                 <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
-                {offtaker.lokasi} &middot; {offtaker.jarak_km} km
+                {offtaker.lokasi} &middot; {offtaker.jarak}
               </p>
               <a
                 href={`tel:${offtaker.kontak}`}

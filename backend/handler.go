@@ -25,6 +25,10 @@ type Handler struct {
 type predictRequest struct {
 	ImageBase64 string `json:"image_base64" binding:"required"`
 	HasIce      bool   `json:"has_ice"`
+	// UserLat/UserLng are optional: sent only when the browser granted
+	// geolocation. When present, backend computes real offtaker distances.
+	UserLat *float64 `json:"user_lat,omitempty"`
+	UserLng *float64 `json:"user_lng,omitempty"`
 }
 
 type aiInferenceRequest struct {
@@ -41,7 +45,7 @@ type aiInferenceResponse struct {
 type offtakerResponse struct {
 	Nama         string   `json:"nama"`
 	Lokasi       string   `json:"lokasi"`
-	JarakKm      int      `json:"jarak_km"`
+	Jarak        string   `json:"jarak"`
 	Kontak       string   `json:"kontak"`
 	TierAccepted []string `json:"tier_accepted"`
 }
@@ -103,12 +107,13 @@ func (h *Handler) Predict(c *gin.Context) {
 	meta := tierMeta[finalTier]
 
 	matched := filterOfftakersByTier(h.Offtakers, finalTier)
-	offtakerList := make([]offtakerResponse, 0, len(matched))
-	for _, o := range matched {
+	ranked, jarakReal := rankOfftakers(matched, req.UserLat, req.UserLng)
+	offtakerList := make([]offtakerResponse, 0, len(ranked))
+	for _, o := range ranked {
 		offtakerList = append(offtakerList, offtakerResponse{
 			Nama:         o.Nama,
 			Lokasi:       o.Lokasi,
-			JarakKm:      o.JarakKm,
+			Jarak:        o.Jarak,
 			Kontak:       o.Kontak,
 			TierAccepted: o.TierAccepted,
 		})
@@ -128,6 +133,9 @@ func (h *Handler) Predict(c *gin.Context) {
 		"sni_indikator":  sniIndikator[finalTier],
 		"heatmap_base64": aiResp.HeatmapBase64,
 		"offtakers":      offtakerList,
+		// jarak_real = true when offtaker distances were computed from the
+		// user's real browser location; false when using static fallback.
+		"jarak_real": jarakReal,
 	})
 }
 

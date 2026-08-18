@@ -13,7 +13,7 @@ import LowConfidenceWarning from '@/components/LowConfidenceWarning';
 import IceDegradedNote from '@/components/IceDegradedNote';
 import OfftakerList from '@/components/OfftakerList';
 import LoadingState from '@/components/LoadingState';
-import { predictFish, type PredictSuccess } from '@/lib/api';
+import { predictFish, getBrowserLocation, type PredictSuccess } from '@/lib/api';
 
 const TIER_ACCENT: Record<string, string> = {
   Tier3_Prima: 'border-l-green-600',
@@ -37,9 +37,15 @@ export default function Home() {
     setErrorMessage(null);
     setLoading(true);
 
+    // Try the browser location first; on denial/timeout this resolves to null
+    // and we submit without coordinates (backend uses static-distance fallback).
+    const location = await getBrowserLocation();
+
     const response = await predictFish({
       imageBase64: photoBase64,
       hasIce,
+      userLat: location?.lat,
+      userLng: location?.lng,
     });
 
     setLoading(false);
@@ -94,7 +100,11 @@ export default function Home() {
               <p className="mt-1 text-sm text-slate-900">{result.rekomendasi}</p>
             </div>
           </div>
-          <OfftakerList offtakers={result.offtakers} tier={result.tier} />
+          <OfftakerList
+            offtakers={result.offtakers}
+            tier={result.tier}
+            jarakReal={result.jarak_real}
+          />
           <button
             type="button"
             onClick={handleReset}
