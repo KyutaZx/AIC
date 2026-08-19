@@ -15,7 +15,7 @@
 │  - Upload foto → POST /api/v1/predict               │
 └────────────────────────┬────────────────────────────┘
                          │ POST /api/v1/predict
-                         │ {image_base64, has_ice, jam_sejak_tangkap}
+                         │ {image_base64, has_ice, user_lat?, user_lng?}
                          ▼
 ┌─────────────────────────────────────────────────────┐
 │           Backend — Golang Gin                       │
@@ -25,6 +25,7 @@
 │  - Terima Tier + confidence                         │
 │  - Apply business rule has_ice                      │
 │  - Match Tier → offtaker dari JSON                  │
+│  - Hitung jarak real (haversine) / fallback statis  │
 │  - Return hasil lengkap ke Frontend                 │
 └───────────┬─────────────────────────────────────────┘
             │ POST /ai/inference
@@ -109,7 +110,8 @@ Content-Type: application/json
 {
   "image_base64": "data:image/jpeg;base64,/9j/...",
   "has_ice": true,
-  "jam_sejak_tangkap": 4        // opsional, null jika tidak diisi
+  "user_lat": -7.2500,   // opsional — dikirim hanya jika browser memberi izin lokasi
+  "user_lng": 112.7500   // opsional — dipakai backend untuk hitung jarak real (haversine)
 }
 ```
 
@@ -124,17 +126,24 @@ Content-Type: application/json
   "rekomendasi": "Kirim lintas provinsi / ekspor hub",
   "low_confidence_warning": false,
   "ice_degraded": false,
+  "jarak_real": true,
   "offtakers": [
     {
       "nama": "CV Maju Bahari",
       "lokasi": "Surabaya",
-      "jarak_km": 45,
+      "jarak": "12.3 km",
       "kontak": "081234567890",
       "tier_accepted": ["Tier2_Sedang", "Tier3_Prima"]
     }
   ]
 }
 ```
+
+Catatan: `jarak` adalah string terformat. Jika `user_lat`/`user_lng` dikirim,
+backend menghitung jarak real dari lokasi user ke koordinat (`lat`/`lng`) tiap
+offtaker via haversine (`"X.X km"`, `jarak_real: true`). Jika tidak dikirim,
+backend memakai `jarak_km` statis dari `offtaker_pool.json` sebagai fallback
+(`"X km"`, `jarak_real: false`). Offtaker selalu diurutkan terdekat dulu.
 
 **Response (error)**
 ```json
@@ -197,13 +206,14 @@ services:
 ## Data Flow Detail
 
 1. User upload foto di browser
-2. Frontend convert ke base64, POST ke `/api/v1/predict` dengan `has_ice` dan `jam_sejak_tangkap`
+2. Frontend minta izin lokasi (`navigator.geolocation`, timeout 5 dtk); convert foto ke base64, POST ke `/api/v1/predict` dengan `has_ice` (+ `user_lat`/`user_lng` bila izin diberikan)
 3. Backend validasi payload (format foto, ukuran max 5MB)
 4. Backend POST ke AI Engine `/ai/inference` dengan image_base64
 5. AI Engine: decode base64 → PIL Image → resize 224×224 → normalize → forward pass → softmax
 6. AI Engine return `tier`, `confidence`, `probabilities`
 7. Backend apply business rule: jika `has_ice = false` → degrade Tier
 8. Backend match Tier final ke `offtaker_pool.json` → filter offtaker yang menerima Tier ini
+8b. Backend hitung jarak: jika `user_lat`/`user_lng` ada → haversine ke `lat`/`lng` tiap offtaker (`jarak_real: true`); jika tidak → fallback `jarak_km` statis. Urutkan terdekat dulu
 9. Backend return response lengkap ke Frontend
 10. Frontend render: TierBadge + confidence + estimasi waktu + OfftakerList
 

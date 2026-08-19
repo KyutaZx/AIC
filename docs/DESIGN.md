@@ -72,7 +72,6 @@ Caption / label kecil  : text-xs text-slate-500
 │  └───────────────┘  │
 │                     │
 │  [Ada Es?] toggle   │
-│  [Jam tangkap?] opt │
 │                     │
 │  [ANALISIS IKAN]    │
 │       button        │
@@ -130,12 +129,7 @@ Caption / label kecil  : text-xs text-slate-500
 - Toggle switch: "Ada Es?" default = ON (true)
 - Jika OFF, tampilkan note kecil: "Tier akan disesuaikan otomatis"
 
-### 4. `JamInput`
-- Input number opsional: "Berapa jam sejak ditangkap? (opsional)"
-- Hanya untuk informasi display, tidak mempengaruhi prediksi AI
-- Placeholder: "contoh: 4"
-
-### 5. `TierBadge`
+### 4. `TierBadge`
 ```tsx
 // Props
 interface TierBadgeProps {
@@ -149,28 +143,28 @@ interface TierBadgeProps {
 // Estimasi: > 18 jam
 ```
 
-### 6. `ConfidenceBar`
+### 5. `ConfidenceBar`
 - Progress bar horizontal 0-100%
 - Warna berubah sesuai nilai (green/amber/red)
 - Label: "Tingkat keyakinan model: 98%"
 
-### 7. `LowConfidenceWarning`
+### 6. `LowConfidenceWarning`
 - Tampil hanya jika `confidence < 0.80`
 - Card kuning dengan icon ⚠️
 - Teks: "Foto kurang jelas. Pastikan 1 ikan utuh di background bersih, seluruh badan masuk frame."
 
-### 8. `IceDegradedNote`
+### 7. `IceDegradedNote`
 - Tampil hanya jika `ice_degraded = true`
 - Card biru info dengan icon ❄️
 - Teks: "Tier disesuaikan karena ikan tidak disimpan dengan es."
 
-### 9. `OfftakerList`
+### 8. `OfftakerList`
 - List card vertikal
 - Setiap card: nama offtaker, lokasi, jarak, nomor kontak
 - Jarak diurutkan dari terdekat
 - Jika Tier 1 (Kritis): tampilkan note merah "Segera proses atau jual lokal"
 
-### 10. `LoadingState`
+### 9. `LoadingState`
 - Full overlay spinner di atas halaman
 - Teks: "Menganalisis kondisi ikan..."
 - Animasi: pulse atau spinner sederhana

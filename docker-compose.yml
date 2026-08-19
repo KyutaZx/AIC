@@ -12,7 +12,7 @@ services:
       - "8000:8000"
     environment:
       AI_ENGINE_URL: http://ai-engine:8001
-      CORS_ALLOW_ORIGIN: "*"
+      CORS_ALLOW_ORIGIN: http://localhost:3000
     depends_on:
       - ai-engine
     networks:

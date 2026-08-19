@@ -7,10 +7,7 @@ import Logo from '@/components/Logo';
 import PhotoUpload from '@/components/PhotoUpload';
 import PhotoGuide from '@/components/PhotoGuide';
 import IceToggle from '@/components/IceToggle';
-import JamInput from '@/components/JamInput';
 import LoadingState from '@/components/LoadingState';
-import { predictFish, type PredictSuccess } from '@/lib/api';
-
 import TierBadge from '@/components/TierBadge';
 import ConfidenceBar from '@/components/ConfidenceBar';
 import HeatmapOverlay from '@/components/HeatmapOverlay';
@@ -18,14 +15,14 @@ import SNIIndicator from '@/components/SNIIndicator';
 import LowConfidenceWarning from '@/components/LowConfidenceWarning';
 import IceDegradedNote from '@/components/IceDegradedNote';
 import OfftakerList from '@/components/OfftakerList';
+import { predictFish, getBrowserLocation, type PredictSuccess } from '@/lib/api';
 
 export default function RootPage() {
   const [view, setView] = useState<'upload' | 'loading' | 'result'>('upload');
-  
+
   // Analisis State
   const [photoBase64, setPhotoBase64] = useState<string | null>(null);
   const [hasIce, setHasIce] = useState(true);
-  const [jamInput, setJamInput] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Result State
@@ -39,11 +36,18 @@ export default function RootPage() {
     setErrorMessage(null);
     setView('loading'); // Tampilkan animasi air
 
-    const jamSejakTangkap = jamInput.trim() === '' ? null : Number(jamInput);
+    // Coba ambil lokasi browser dulu; kalau ditolak/timeout resolusinya null
+    // dan kita submit tanpa koordinat (backend pakai fallback jarak statis).
+    const location = await getBrowserLocation();
 
     // Jalankan API dan minimum timer 3.5 detik secara bersamaan
     const [response] = await Promise.all([
-      predictFish({ imageBase64: photoBase64, hasIce, jamSejakTangkap }),
+      predictFish({
+        imageBase64: photoBase64,
+        hasIce,
+        userLat: location?.lat,
+        userLng: location?.lng,
+      }),
       new Promise<void>((resolve) => setTimeout(resolve, 3500)),
     ]);
 
@@ -60,7 +64,6 @@ export default function RootPage() {
   function handleReset() {
     setView('upload');
     setPhotoBase64(null);
-    setJamInput('');
     setHasIce(true);
     setResult(null);
     setErrorMessage(null);
@@ -117,7 +120,11 @@ export default function RootPage() {
           </div>
 
           {/* ── Offtakers ── */}
-          <OfftakerList offtakers={result.offtakers} tier={result.tier} />
+          <OfftakerList
+            offtakers={result.offtakers}
+            tier={result.tier}
+            jarakReal={result.jarak_real}
+          />
 
           {/* ── Reset CTA ── */}
           <button
@@ -163,10 +170,7 @@ export default function RootPage() {
         {/* Kondisi section */}
         <div>
           <h2 className="mb-3 text-lg font-black text-[#0A0A1A]">Kondisi Ikan</h2>
-          <div className="grid grid-cols-2 gap-2">
-            <IceToggle checked={hasIce} onChange={setHasIce} />
-            <JamInput value={jamInput} onChange={setJamInput} />
-          </div>
+          <IceToggle checked={hasIce} onChange={setHasIce} />
         </div>
 
         {/* Error */}

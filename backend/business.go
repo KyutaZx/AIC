@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
+	"math"
 	"os"
 	"sort"
 )
@@ -11,11 +13,20 @@ type Offtaker struct {
 	ID           string   `json:"id"`
 	Nama         string   `json:"nama"`
 	Lokasi       string   `json:"lokasi"`
+	Lat          float64  `json:"lat"`
+	Lng          float64  `json:"lng"`
 	JarakKm      int      `json:"jarak_km"`
 	Kontak       string   `json:"kontak"`
 	TierAccepted []string `json:"tier_accepted"`
 	KapasitasKg  int      `json:"kapasitas_kg"`
 	Keterangan   string   `json:"keterangan"`
+}
+
+// RankedOfftaker pairs an offtaker with its display distance ("X.X km" real
+// or "X km" static fallback), ready to be sent to the frontend.
+type RankedOfftaker struct {
+	Offtaker
+	Jarak string
 }
 
 type offtakerPool struct {
@@ -113,4 +124,63 @@ func filterOfftakersByTier(offtakers []Offtaker, tier string) []Offtaker {
 	})
 
 	return result
+}
+
+// haversineDistance returns the great-circle distance in kilometers between two
+// points given in decimal degrees. Pure math, no external API.
+func haversineDistance(lat1, lng1, lat2, lng2 float64) float64 {
+	const earthRadiusKm = 6371.0
+
+	dLat := (lat2 - lat1) * math.Pi / 180
+	dLng := (lng2 - lng1) * math.Pi / 180
+	rLat1 := lat1 * math.Pi / 180
+	rLat2 := lat2 * math.Pi / 180
+
+	a := math.Sin(dLat/2)*math.Sin(dLat/2) +
+		math.Cos(rLat1)*math.Cos(rLat2)*math.Sin(dLng/2)*math.Sin(dLng/2)
+	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
+
+	return earthRadiusKm * c
+}
+
+// rankOfftakers attaches a display distance to each offtaker and sorts nearest
+// first. When userLat/userLng are provided (user granted browser geolocation),
+// distance is computed live via haversine and formatted "X.X km". Otherwise it
+// falls back to the static jarak_km from offtaker_pool.json formatted "X km".
+// The returned bool reports whether the distances are real (location-based).
+func rankOfftakers(offtakers []Offtaker, userLat, userLng *float64) ([]RankedOfftaker, bool) {
+	useReal := userLat != nil && userLng != nil
+
+	type entry struct {
+		ranked RankedOfftaker
+		dist   float64
+	}
+
+	entries := make([]entry, 0, len(offtakers))
+	for _, o := range offtakers {
+		var dist float64
+		var jarak string
+		if useReal {
+			dist = haversineDistance(*userLat, *userLng, o.Lat, o.Lng)
+			jarak = fmt.Sprintf("%.1f km", dist)
+		} else {
+			dist = float64(o.JarakKm)
+			jarak = fmt.Sprintf("%d km", o.JarakKm)
+		}
+		entries = append(entries, entry{
+			ranked: RankedOfftaker{Offtaker: o, Jarak: jarak},
+			dist:   dist,
+		})
+	}
+
+	sort.SliceStable(entries, func(i, j int) bool {
+		return entries[i].dist < entries[j].dist
+	})
+
+	result := make([]RankedOfftaker, 0, len(entries))
+	for _, e := range entries {
+		result = append(result, e.ranked)
+	}
+
+	return result, useReal
 }

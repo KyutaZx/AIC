@@ -15,6 +15,8 @@ Tidak ada database di MVP. Data offtaker disimpan sebagai JSON hardcoded di `bac
       "id": "off_001",
       "nama": "CV Maju Bahari",
       "lokasi": "Surabaya, Jawa Timur",
+      "lat": -7.2575,
+      "lng": 112.7521,
       "jarak_km": 45,
       "kontak": "081234567890",
       "tier_accepted": ["Tier2_Sedang", "Tier3_Prima"],
@@ -84,7 +86,9 @@ Tidak ada database di MVP. Data offtaker disimpan sebagai JSON hardcoded di `bac
 | `id` | string | Unique identifier, format `off_XXX` |
 | `nama` | string | Nama perusahaan/koperasi/individu |
 | `lokasi` | string | Kota, Provinsi |
-| `jarak_km` | int | Jarak estimasi dari TPI referensi (mock) |
+| `lat` | float | Lintang (latitude) lokasi tetap offtaker (koordinat kota) |
+| `lng` | float | Bujur (longitude) lokasi tetap offtaker (koordinat kota) |
+| `jarak_km` | int | Jarak estimasi statis dari TPI referensi (fallback saat lokasi user tak tersedia) |
 | `kontak` | string | Nomor HP (format Indonesia) |
 | `tier_accepted` | []string | Tier yang diterima offtaker ini |
 | `kapasitas_kg` | int | Kapasitas beli per trip (mock) |
@@ -113,13 +117,33 @@ func filterOfftakerByTier(offtakers []Offtaker, tier string) []Offtaker {
 }
 ```
 
-### 2. Sort by Jarak
-Hasil filter diurutkan dari jarak terdekat ke terjauh.
+### 2. Estimasi Jarak Real (Haversine) + Sort by Jarak
+
+Backend menghitung jarak **real** dari lokasi pengguna ke tiap offtaker, bukan
+memakai angka statis. Alurnya:
+
+- Frontend mencoba mengambil lokasi browser (`navigator.geolocation`). Jika
+  pengguna mengizinkan, `user_lat` & `user_lng` dikirim di body request.
+- Jika `user_lat`/`user_lng` **ada**: backend menghitung jarak great-circle ke
+  koordinat (`lat`,`lng`) tiap offtaker via **rumus haversine** (matematika
+  murni, tanpa API eksternal), lalu memformatnya `"X.X km"`.
+- Jika **tidak ada** (izin ditolak/timeout/tak didukung): backend memakai
+  `jarak_km` statis dari JSON sebagai fallback, diformat `"X km"`.
+
+Hasilnya selalu diurutkan dari terdekat ke terjauh. Field response
+`jarak_real: true` menandakan jarak berbasis lokasi user; `false` = fallback.
 
 ```go
-sort.Slice(filtered, func(i, j int) bool {
-    return filtered[i].JarakKm < filtered[j].JarakKm
-})
+// Pseudocode
+func haversineDistance(lat1, lng1, lat2, lng2 float64) float64 {
+    const R = 6371.0 // radius bumi (km)
+    dLat := (lat2 - lat1) * math.Pi / 180
+    dLng := (lng2 - lng1) * math.Pi / 180
+    a := math.Sin(dLat/2)*math.Sin(dLat/2) +
+        math.Cos(lat1*math.Pi/180)*math.Cos(lat2*math.Pi/180)*
+            math.Sin(dLng/2)*math.Sin(dLng/2)
+    return R * 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
+}
 ```
 
 ### 3. Business Rule: has_ice
@@ -164,4 +188,4 @@ var tierMeta = map[string]TierMeta{
 
 ## Catatan untuk Juri
 
-Data offtaker ini adalah **mock data** untuk keperluan demo MVP. Dalam implementasi produksi, data ini akan berasal dari database yang terhubung ke sistem registrasi offtaker nyata. Integrasi Maps API untuk jarak real-time adalah roadmap pasca-MVP.
+Data offtaker ini adalah **mock data** untuk keperluan demo MVP (JSON hardcoded, tanpa database). Namun jarak yang ditampilkan **bukan** angka statis: koordinat tetap (`lat`/`lng`) tiap offtaker nyata, dan jarak dihitung real-time dari lokasi browser pengguna via rumus haversine — matematika murni tanpa API pihak ketiga. Angka `jarak_km` statis hanya dipakai sebagai fallback bila pengguna menolak izin lokasi. Dalam produksi, daftar offtaker akan berasal dari database sistem registrasi offtaker nyata; integrasi routing jalan (Maps API) untuk jarak tempuh aktual adalah roadmap pasca-MVP.

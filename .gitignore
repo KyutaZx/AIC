@@ -17,6 +17,7 @@ node_modules/
 out/
 dist/
 build/
+*.tsbuildinfo
 
 # Go
 backend/backend
