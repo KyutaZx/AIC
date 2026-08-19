@@ -1,4 +1,4 @@
-# PRD — AquaRoute AI
+# PRD — FreshCo
 
 ## 1. Problem Statement
 
@@ -11,7 +11,7 @@ Estimasi kondisi ikan saat ini bergantung pada intuisi subjektif pengepul. Tidak
 
 ## 2. Solusi
 
-AquaRoute AI menjawab satu pertanyaan: **"Dengan kondisi ikan ini, sebaiknya didistribusikan ke mana?"**
+FreshCo menjawab satu pertanyaan: **"Dengan kondisi ikan ini, sebaiknya didistribusikan ke mana?"**
 
 Pengguna cukup foto ikan → sistem mengklasifikasi kondisi ke dalam 3 Tier → sistem merekomendasikan rute distribusi yang optimal dari daftar offtaker terdekat.
 

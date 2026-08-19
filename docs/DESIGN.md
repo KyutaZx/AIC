@@ -1,4 +1,4 @@
-# Design — AquaRoute AI
+# Design — FreshCo
 
 ## Design Principles
 

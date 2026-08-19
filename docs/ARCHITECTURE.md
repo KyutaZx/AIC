@@ -1,4 +1,4 @@
-# Architecture — AquaRoute AI
+# Architecture — FreshCo
 
 ## System Overview
 
@@ -54,7 +54,7 @@
 ## Folder Structure
 
 ```
-aquaroute-ai/
+freshco/
 ├── CLAUDE.md                    ← dibaca Claude Code otomatis
 ├── docker-compose.yml
 ├── docs/
@@ -66,7 +66,7 @@ aquaroute-ai/
 │
 ├── ai-engine/
 │   ├── main.py                  ← FastAPI app + endpoint /ai/inference
-│   ├── model.py                 ← AquaRouteVisualModel class + load logic
+│   ├── model.py                 ← FreshCoVisualModel class + load logic
 │   ├── best_visual.pt           ← model weights (copy dari Google Drive)
 │   ├── requirements.txt
 │   └── Dockerfile

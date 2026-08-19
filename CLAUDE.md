@@ -1,12 +1,12 @@
-# AquaRoute AI — Claude Code Context
+# FreshCo — Claude Code Context
 
 ## Identitas Project
 - **Kompetisi**: AI Innovation Challenge (AIC) COMPFEST 18 — Sub-tema Smart Logistics
 - **Deadline**: 25 Agustus 2026, pukul 23.55 WIB (~3,5 minggu lagi per 1 Agustus 2026)
-- **Nama sistem**: AquaRoute AI
+- **Nama sistem**: FreshCo
 
 ## Problem
-Pengepul ikan di TPI tidak punya cara objektif menentukan distribusi ikan. AquaRoute AI menjawab: **"Dengan kondisi ikan ini, sebaiknya didistribusikan ke mana?"** — bukan sekadar segar/tidak segar, tapi keputusan logistik aktif.
+Pengepul ikan di TPI tidak punya cara objektif menentukan distribusi ikan. FreshCo menjawab: **"Dengan kondisi ikan ini, sebaiknya didistribusikan ke mana?"** — bukan sekadar segar/tidak segar, tapi keputusan logistik aktif.
 
 ## Stack
 | Service | Teknologi | Port |
@@ -42,7 +42,7 @@ Tier mapping:
 3. **AI Engine load model sekali saat startup** — tidak saat request
 4. **Offtaker Pool = JSON hardcoded** (`offtaker_pool.json`) — tidak ada database
 5. **Commit dengan Conventional Commits**: `feat:`, `fix:`, `refactor:` (wajib, ini syarat penilaian lomba, bukan sekadar preferensi)
-6. `jam_sejak_tangkap` dan `has_ice` **BUKAN input model** — business rule di backend
+6. `has_ice` **BUKAN input model** — business rule di backend
 7. Business rule `has_ice`: tanpa es → degrade Tier otomatis (3→2, 2→1)
 
 ## ATURAN LOMBA RESMI (AIC COMPFEST 18) — WAJIB DIPATUHI

@@ -1,7 +1,7 @@
 # FINDINGS — Investigasi Explainability Model Visual (Grad-CAM)
 
 Dokumen ini mencatat kronologi jujur investigasi kualitas atensi model visual
-AquaRoute AI (MobileNetV3-Small, klasifikasi 3 tier). Tujuannya: transparansi
+FreshCo (MobileNetV3-Small, klasifikasi 3 tier). Tujuannya: transparansi
 metodologi — apa yang dicoba, apa yang berhasil, apa yang tidak, dan mengapa.
 
 **Status model saat ini: model retrain aktif (akurasi 85.00% pada split bebas

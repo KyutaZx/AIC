@@ -4,7 +4,7 @@ services:
     expose:
       - "8001"
     networks:
-      - aquaroute-net
+      - freshco-net
 
   backend:
     build: ./backend
@@ -16,7 +16,7 @@ services:
     depends_on:
       - ai-engine
     networks:
-      - aquaroute-net
+      - freshco-net
 
   frontend:
     build: ./frontend
@@ -27,8 +27,8 @@ services:
     depends_on:
       - backend
     networks:
-      - aquaroute-net
+      - freshco-net
 
 networks:
-  aquaroute-net:
+  freshco-net:
     driver: bridge

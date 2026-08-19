@@ -1,4 +1,4 @@
-"""AquaRoute AI visual model: MobileNetV3-Small, 3-class tier classifier."""
+"""FreshCo visual model: MobileNetV3-Small, 3-class tier classifier."""
 
 import base64
 import io
@@ -27,11 +27,11 @@ _preprocess = transforms.Compose(
 )
 
 _device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-_model: Optional["AquaRouteVisualModel"] = None
+_model: Optional["FreshCoVisualModel"] = None
 _gradcam: Optional["GradCAM"] = None
 
 
-class AquaRouteVisualModel(nn.Module):
+class FreshCoVisualModel(nn.Module):
     """MobileNetV3-Small backbone with a 3-class classification head (matches training architecture)."""
 
     def __init__(self, num_classes: int = len(CLASS_NAMES)) -> None:
@@ -82,7 +82,7 @@ class GradCAM:
     change only.
     """
 
-    def __init__(self, model: AquaRouteVisualModel) -> None:
+    def __init__(self, model: FreshCoVisualModel) -> None:
         self.model = model
         # model.visual[0] is backbone.features — hook the final feature block output.
         self.target_layer = model.visual[0]
@@ -148,7 +148,7 @@ def _overlay_heatmap(image: Image.Image, cam: np.ndarray, alpha: float = 0.4) ->
     return base64.b64encode(buffer.getvalue()).decode("ascii")
 
 
-def load_model() -> AquaRouteVisualModel:
+def load_model() -> FreshCoVisualModel:
     """Load best_visual.pt from disk once and cache it in memory.
 
     Raises FileNotFoundError with a clear message if the weights file is missing,
@@ -163,7 +163,7 @@ def load_model() -> AquaRouteVisualModel:
             "the AI Engine (see CLAUDE.md: model backup is on Google Drive)."
         )
 
-    model = AquaRouteVisualModel()
+    model = FreshCoVisualModel()
     state_dict = torch.load(MODEL_PATH, map_location=_device)
     model.load_state_dict(state_dict)
     model.to(_device)
@@ -174,7 +174,7 @@ def load_model() -> AquaRouteVisualModel:
     return model
 
 
-def get_model() -> AquaRouteVisualModel:
+def get_model() -> FreshCoVisualModel:
     """Return the cached model instance, raising if load_model() has not run yet."""
     if _model is None:
         raise RuntimeError("Model has not been loaded. Call load_model() at startup first.")

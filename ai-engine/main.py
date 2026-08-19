@@ -1,4 +1,4 @@
-"""AquaRoute AI Engine — FastAPI app, routing and startup only."""
+"""FreshCo AI Engine — FastAPI app, routing and startup only."""
 
 import base64
 import binascii
@@ -15,7 +15,7 @@ from model import generate_heatmap, load_model, predict
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("ai-engine")
 
-app = FastAPI(title="AquaRoute AI Engine")
+app = FastAPI(title="FreshCo AI Engine")
 
 
 class InferenceRequest(BaseModel):
@@ -32,7 +32,7 @@ class InferenceResponse(BaseModel):
 @app.on_event("startup")
 async def startup() -> None:
     """Load model weights once when the service starts, not per request."""
-    logger.info("Loading AquaRoute visual model from disk...")
+    logger.info("Loading FreshCo visual model from disk...")
     load_model()
     logger.info("Model loaded successfully.")
 

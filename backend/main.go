@@ -34,7 +34,7 @@ func main() {
 	router.Use(corsMiddleware(allowedOrigin))
 	router.POST("/api/v1/predict", h.Predict)
 
-	log.Printf("AquaRoute backend listening on :%s (AI engine: %s)", port, aiEngineURL)
+	log.Printf("FreshCo backend listening on :%s (AI engine: %s)", port, aiEngineURL)
 	if err := router.Run(":" + port); err != nil {
 		log.Fatalf("server failed: %v", err)
 	}

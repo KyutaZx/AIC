@@ -1,4 +1,4 @@
-# Offtaker Pool — AquaRoute AI
+# Offtaker Pool — FreshCo
 
 ## Overview
 

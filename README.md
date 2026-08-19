@@ -1,8 +1,8 @@
-# AquaRoute AI
+# FreshCo
 
 **Distribusi ikan berbasis kondisi, bukan tebakan.**
 
-AquaRoute AI adalah sistem rekomendasi distribusi ikan berbasis AI untuk pengepul/koperasi ikan di Tempat Pelelangan Ikan (TPI). Alih-alih hanya mengklasifikasikan ikan "segar/tidak segar", sistem ini menjawab pertanyaan yang lebih konkret: **dengan kondisi ikan ini, sebaiknya didistribusikan ke mana, dan seberapa mendesak?**
+FreshCo adalah sistem rekomendasi distribusi ikan berbasis AI untuk pengepul/koperasi ikan di Tempat Pelelangan Ikan (TPI). Alih-alih hanya mengklasifikasikan ikan "segar/tidak segar", sistem ini menjawab pertanyaan yang lebih konkret: **dengan kondisi ikan ini, sebaiknya didistribusikan ke mana, dan seberapa mendesak?**
 
 Cukup foto ikan → sistem mengklasifikasikan kondisi ke dalam 3 Tier (Prima/Sedang/Kritis) menggunakan model computer vision → sistem merekomendasikan rute distribusi dan daftar offtaker terdekat yang sesuai.
 
@@ -84,7 +84,7 @@ Build pertama kali akan memakan waktu beberapa menit (download base image, insta
 ```
 ai-engine-1  | INFO:     Application startup complete.
 ai-engine-1  | INFO:     Uvicorn running on http://0.0.0.0:8001
-backend-1    | AquaRoute backend listening on :8000
+backend-1    | FreshCo backend listening on :8000
 frontend-1   | ▲ Next.js ready on http://localhost:3000
 ```
 

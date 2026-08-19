@@ -1,4 +1,4 @@
-# Rules — AquaRoute AI
+# Rules — FreshCo
 
 ## Git & Commit
 
